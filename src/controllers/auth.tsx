@@ -5,7 +5,7 @@ import { parseCookie, serializeCookie } from "lucia/utils";
 import { googleAuth } from "../auth";
 import { config } from "../config";
 import { ctx } from "../context";
-import { redirect } from "../lib";
+import { redirect, syncIfLocal } from "../lib";
 
 class DuplicateEmailError extends Error {
   constructor() {
@@ -97,6 +97,8 @@ export const authController = new Elysia({
       });
 
       const sessionCookie = auth.createSessionCookie(session);
+
+      await syncIfLocal();
 
       set.headers["Set-Cookie"] = sessionCookie.serialize();
       redirect(

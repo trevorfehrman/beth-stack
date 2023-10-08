@@ -1,4 +1,5 @@
 import { unlinkSync } from "fs";
+import { exit } from "process";
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
@@ -36,7 +37,7 @@ export async function pushToTenantDb({
   const tempConfigPath = "./src/db/tenant/drizzle.config.ts";
 
   const configText = `
-    export default {
+  export default {
     schema: "./src/db/tenant/schema/index.ts",
     driver: "turso",
     dbCredentials: {
@@ -44,8 +45,7 @@ export async function pushToTenantDb({
       authToken: "${authToken}",
     },
     tablesFilter: ["!libsql_wasm_func_table"],
-  } satisfies Config;
-`;
+  }`;
 
   await Bun.write(tempConfigPath, configText);
 
@@ -56,6 +56,7 @@ export async function pushToTenantDb({
         stdout: input ? "inherit" : undefined,
         stdin: input ? "inherit" : undefined,
         onExit(subprocess, exitCode, signalCode, error) {
+          console.log({ exitCode, error }, "hi from tenant index");
           unlinkSync(tempConfigPath);
           if (exitCode === 0) {
             resolve(void 0);
